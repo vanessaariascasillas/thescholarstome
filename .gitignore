@@ -1,0 +1,15 @@
+# Ignore environment secrets
+../.env
+.env/
+.env
+# Ignore Python cache and venv
+__pycache__/
+*.pyc
+.venv/
+venv/
+# Ignore IDE settings (optional, e.g., for PyCharm)
+.idea/
+.vscode/
+
+# Allow everything else in your project
+# (Remove the `*` unless you specifically want to ignore all files)
