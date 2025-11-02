@@ -1,6 +1,6 @@
-Title: a-shell connect GitHub
+# Title: a-shell connect GitHub
 
-Tags: A-shell, GitHub, HowTo, Instructions 
+#### Tags: A-shell, GitHub, HowTo, Instructions 
 
 Intro: I have had a hard time in the past trying to make .txt files and being able to work on simple files on GitHub repos from my phone and ipad. There are times that I wanted to just write a quick journal entry or work on a file on my repo while I was waiting for a friend to show for a lunch hangout or when I was just bored waiting. I am excited that this exist. 
 
@@ -10,12 +10,16 @@ Side note scene set up time (This is for nothing about a-shell, I just wanted to
 
 So once I was at the house, I was able to really research what was going on which is when I found the forum post (I did try chatgpt by the way, chatgpt tells you just go to the .ssh folder or here is the code, it will work. Where as a forum post will say, dude I know I went through the same struggles, here is everything I have tried and this is how I fixed it. This is why I will always appreciate forums more than a chatbot) that told me what I was missing, which is exactly where the .ssh folder is on the ipad, when the pwd is semi lying to you... (it was not, but is was not picking it up with the CAT code and when you went looking for it is was like nope I am not here, until after 8 hours where its like "AHA YOU FOUND ME!" because you had just decided to write the same cd then press tab not in the root folder but in the folder you where in the entire time. So below are the step for future me so I do not forget
 
-Steps:
+## Steps:
 1. Open a-shell 
 2. install git
-> pkg install git
+```bash
+    pkg install git
+```
 3. check with ls that there is a bin folder
-> ls
+```bash
+    ls
+```
 4. also check what commands you can do with lg2
 > lg2
 5. Clone git repo from GitHub, you will need url of the repo you are cloning, there is no big green button on phone app so go to repo click the circle with the three dots and click share then just click the option copy, you will have to add ".git" at the end.
