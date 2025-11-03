@@ -57,8 +57,14 @@ for md_file in md_files:
     </section>
 </main>
 
-<footer>
-    <p>© <span id="year"></span> {SITE_TITLE}</p>
+<footer style="text-align:center; font-size:0.9em; padding:1em 0; border-top:1px solid #ccc;">
+  <p>
+    &copy; <span id="year"></span> {SITE_TITLE}.
+    Content on this site is licensed under
+    <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener noreferrer">
+      Creative Commons Attribution-NonCommercial 4.0 International
+    </a>.
+  </p>
 </footer>
 <script>
 document.getElementById("year").textContent = new Date().getFullYear();
