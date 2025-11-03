@@ -1,78 +1,73 @@
-import docx2md
 import os
-import shutil
-import re
+from pathlib import Path
+from datetime import datetime
+import markdown
 
-# Folders
-docx_folder = "docx_files"
-processed_folder = "docx_processed"
-media_folder = "media"
-folder_prefix = "howtos/"  # folder prefix for Markdown links
+# ----------------------------
+# Configuration
+# ----------------------------
+MD_DIR = Path(".")  # Current folder with your Markdown files
+CSS_FILE = "style.css"
+SITE_TITLE = "The Scholar’s Tome"
 
-# Ensure folders exist
-os.makedirs(docx_folder, exist_ok=True)
-os.makedirs(processed_folder, exist_ok=True)
-os.makedirs(media_folder, exist_ok=True)
+# ----------------------------
+# List Markdown files
+# ----------------------------
+md_files = list(MD_DIR.glob("*.md"))
+if not md_files:
+    print("No Markdown files found in the current folder.")
+    exit()
+else:
+    print(f"Markdown files found: {[f.name for f in md_files]}")
 
-current_folder = os.getcwd()
+# ----------------------------
+# Convert Markdown → HTML in same folder
+# ----------------------------
+for md_file in md_files:
+    html_file = md_file.with_suffix(".html")
+    print(f"Converting {md_file.name} → {html_file.name}")
 
-for filename in os.listdir(docx_folder):
-    if filename.lower().endswith(".docx"):
-        docx_path = os.path.join(docx_folder, filename)
-        base_name = os.path.splitext(filename)[0]
+    # Read Markdown content
+    with open(md_file, "r", encoding="utf-8") as f:
+        md_content = f.read()
 
-        md_file = os.path.join(current_folder, f"{base_name}.md")
+    # Convert Markdown to HTML (images, headings, links, lists)
+    html_body = markdown.markdown(md_content, extensions=['extra'])
 
-        # Convert DOCX → Markdown
-        markdown_text = docx2md.do_convert(
-            docx_path,
-            target_dir=media_folder,
-            use_md_table=False
-        )
+    # Wrap in basic HTML template
+    html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{md_file.stem}</title>
+    <link rel="stylesheet" href="{CSS_FILE}">
+</head>
+<body>
+<header>
+    <h1>{SITE_TITLE}</h1>
+    <nav>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="data.html">Data</a></li>
+            <li><a href="howtos.html" class="active">How-Tos</a></li>
+            <li><a href="about.html">About</a></li>
+        </ul>
+    </nav>
+</header>
+<main>
+<div id="content">
+{html_body}
+</div>
+</main>
+<footer>
+<p>© {SITE_TITLE} {datetime.now().year}</p>
+</footer>
+</body>
+</html>
+"""
 
-        # Flatten any subfolders docx2md created
-        for root, dirs, files in os.walk(media_folder):
-            for dir_name in dirs:
-                subfolder = os.path.join(root, dir_name)
-                for i, img in enumerate(sorted(os.listdir(subfolder)), start=1):
-                    ext = os.path.splitext(img)[1]
-                    new_name = f"{base_name}_{i}{ext}"  # rename with DOCX prefix
-                    new_path = os.path.join(media_folder, new_name)
-                    shutil.move(os.path.join(subfolder, img), new_path)
-                    # Update Markdown links with folder_prefix
-                    markdown_text = markdown_text.replace(f"{img}", f"{folder_prefix}media/{new_name}")
-                    markdown_text = markdown_text.replace(f"{dir_name}/{img}", f"{folder_prefix}media/{new_name}")
-                os.rmdir(subfolder)
+    # Save HTML file in same folder
+    with open(html_file, "w", encoding="utf-8") as f:
+        f.write(html_content)
 
-        # Rename remaining files directly in media_folder that weren’t prefixed
-        for i, img in enumerate(sorted(os.listdir(media_folder)), start=1):
-            if img.startswith(f"{base_name}_"):
-                continue
-            ext = os.path.splitext(img)[1]
-            new_name = f"{base_name}_{i}{ext}"
-            old_path = os.path.join(media_folder, img)
-            new_path = os.path.join(media_folder, new_name)
-            os.rename(old_path, new_path)
-            # Update Markdown links with folder_prefix
-            markdown_text = markdown_text.replace(img, f"{folder_prefix}media/{new_name}")
-
-        # Replace <img src="..."> HTML tags with Markdown syntax and folder_prefix
-        def replace_img_tag(match):
-            src = match.group(1)
-            src_name = os.path.basename(src)
-            # Set only width to keep aspect ratio
-            width = 400
-            return f'<img src="{folder_prefix}media/{src_name}" alt="{base_name}" width="{width}">'
-
-        markdown_text = re.sub(r'<img src="([^"]+)"[^>]*>', replace_img_tag, markdown_text)
-
-        # Save Markdown
-        with open(md_file, "w", encoding="utf-8") as f:
-            f.write(markdown_text)
-
-        # Move processed DOCX
-        shutil.move(docx_path, os.path.join(processed_folder, filename))
-
-        print(f"Processed '{filename}' → '{md_file}' with images in '{media_folder}'")
-
-print("All DOCX files converted with images prefixed by DOCX name and Markdown links updated with folder prefix.")
+print("✅ All Markdown files converted to HTML. Image paths are preserved!")
