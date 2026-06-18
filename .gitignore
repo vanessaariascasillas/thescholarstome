@@ -13,3 +13,4 @@ venv/
 
 # Allow everything else in your project
 # (Remove the `*` unless you specifically want to ignore all files)
+.Rproj.user
