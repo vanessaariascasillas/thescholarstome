@@ -1,3 +1,13 @@
+---
+author: vanessaariascasillas
+author_url: https://github.com/vanessaariascasillas
+tags: AI, Gemini, coding, workflow
+category: AI / Workflow
+difficulty: Intermediate
+estimated effort: 15 min
+version: 1.0
+---
+
 # End-to-End Vibe Coding Workflow (Google Gemini Ecosystem)
 
 ## Why This Guide Exists

@@ -1,3 +1,13 @@
+---
+author: vanessaariascasillas
+author_url: https://github.com/vanessaariascasillas
+tags: conference, chair, academic
+category: Conference & Event
+difficulty: Beginner
+estimated effort: 10 min
+version: 1.0
+---
+
 # How to Chair a Conference Session
 
 ## Purpose

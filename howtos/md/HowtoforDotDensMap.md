@@ -1,3 +1,13 @@
+---
+author: vanessaariascasillas
+author_url: https://github.com/vanessaariascasillas
+tags: GIS, map, dot density, ArcGIS
+category: GIS
+difficulty: Beginner
+estimated effort: 12 min
+version: 1.0
+---
+
 # How to Dot Density and Swipe Two Maps
 
 Please try out these steps to give you a better idea of how your project steps will be. I am using the attributes “Male” and “Females” for this How To.

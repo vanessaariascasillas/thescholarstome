@@ -1,3 +1,13 @@
+---
+author: vanessaariascasillas
+author_url: https://github.com/vanessaariascasillas
+tags: A-shell, GitHub, How-To, Instructions
+category: GitHub
+difficulty: Beginner
+estimated effort: 10 min
+version: 1.0
+---
+
 # Title: a-shell connect GitHub
 
 #### Tags: A-shell, GitHub, HowTo, Instructions
