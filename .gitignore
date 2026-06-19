@@ -2,15 +2,22 @@
 ../.env
 .env/
 .env
+
 # Ignore Python cache and venv
 __pycache__/
 *.pyc
 .venv/
 venv/
-# Ignore IDE settings (optional, e.g., for PyCharm)
+
+# Ignore IDE settings
 .idea/
 .vscode/
 
-# Allow everything else in your project
-# (Remove the `*` unless you specifically want to ignore all files)
+# Ignore RStudio files (not used in this project)
 .Rproj.user
+.Rhistory
+*.Rproj
+
+# Ignore local notebooks and temp files
+.ipynb_checkpoints/
+.DS_Store
