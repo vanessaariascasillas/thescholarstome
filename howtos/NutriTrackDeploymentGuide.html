@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NutriTrackDeploymentGuide | The Scholar’s Tome</title>
+<link href="../style.css" rel="stylesheet"/>
+</head>
+<body>
+<header>
+<h1>The Scholar’s Tome</h1>
+<nav>
+<ul>
+<li><a href="../index.html">Home</a></li>
+<li><a href="../data.html">Data</a></li>
+<li><a class="active" href="../howtos.html">How-Tos</a></li>
+<li><a href="../about.html">About</a></li>
+</ul>
+</nav>
+</header>
+<main>
+<section>
+<div class="page-meta-top">
+<span><strong>Type:</strong> How-To</span>
+<span><strong>Author:</strong> <a href="https://github.com/vanessaariascasillas" rel="noopener noreferrer" target="_blank">vanessaariascasillas</a></span>
+<span><strong>Reading time:</strong> 9 min read</span>
+<span><strong>Tags:</strong> Not specified</span>
+<span><strong>Category:</strong> Not specified</span>
+</div>
+<h1 id="nutritrack-complete-deployment-architecture-guide">NutriTrack — Complete Deployment &amp; Architecture Guide</h1>
+<p>An educational guide detailing the local setup, cloud migration, database architecture transitions, and production deployment of the NutriTrack health journal. Use this document to teach others how to deploy a full-stack, AI-powered web application on Google Cloud.</p>
+<hr/>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#1-architecture--tech-stack-overview">Architecture &amp; Tech Stack Overview</a></li>
+<li><a href="#2-choose-your-ecosystem-first">Choose Your Ecosystem First</a></li>
+<li><a href="#3-install-required-tools">Install Required Tools</a></li>
+<li><a href="#4-account-creation-step-by-step">Account Creation Step-by-Step</a></li>
+<li><a href="#5-connect--verify-everything">Connect &amp; Verify Everything</a></li>
+<li><a href="#6-local-development-setup">Local Development Setup</a></li>
+<li><a href="#7-the-deployment-journey-sqlite--cloud-sql--neon-postgres">The Deployment Journey: SQLite ➔ Cloud SQL ➔ Neon Postgres</a></li>
+<li><a href="#8-google-cloud-platform-configuration-one-time-per-project">Google Cloud Platform Configuration (One-Time Per Project)</a></li>
+<li><a href="#9-deploying-the-application-to-cloud-run">Deploying the Application to Cloud Run</a></li>
+<li><a href="#10-postgresql-migration-pitfalls--debugging">PostgreSQL Migration Pitfalls &amp; Debugging</a></li>
+<li><a href="#11-billing--ai-cost-faq-teaching-guide">Billing &amp; AI Cost FAQ (Teaching Guide)</a></li>
+<li><a href="#12-checking-live-logs--troubleshooting">Checking Live Logs &amp; Troubleshooting</a></li>
+<li><a href="#13-publishing-to-github-safely">Publishing to GitHub Safely</a></li>
+<li><a href="#14-deploying-a-second-website-same-billing-new-project">Deploying a Second Website (Same Billing, New Project)</a></li>
+<li><a href="#15-vibe-coding-how-this-project-was-built-with-ai">Vibe Coding: How This Project Was Built with AI</a></li>
+</ol>
+<hr/>
+<h2 id="1-architecture-tech-stack-overview">1. Architecture &amp; Tech Stack Overview</h2>
+<p>NutriTrack is a personal health journal that runs as a containerized full-stack application:
+*   <strong>Frontend:</strong> Pure, framework-less HTML5, CSS3 (warm, skeuomorphic leather journal aesthetic), and vanilla JavaScript.
+*   <strong>Backend:</strong> FastAPI (Python 3.12, async), running on Uvicorn.
+*   <strong>AI Integration:</strong> Google Gemini 2.5 Flash via Vertex AI (<code>google-cloud-aiplatform</code>).
+*   <strong>Database:</strong> PostgreSQL accessed asynchronously via SQLAlchemy ORM and the <code>asyncpg</code> driver.
+*   <strong>Hosting:</strong> Google Cloud Run (serverless container hosting).</p>
+<p>In production, <strong>FastAPI serves both the API and the static frontend files</strong> from a single Docker container. This eliminates CORS issues and simplifies the deployment architecture to a single service.</p>
+<hr/>
+<h2 id="2-choose-your-ecosystem-first">2. Choose Your Ecosystem First</h2>
+<blockquote>
+<p><strong>The most overlooked step in vibe coding:</strong> Most beginners spend more time on configuration — accounts, billing, authentication, cloud resources, IDE setup — than on actual prompting. Choosing your ecosystem <em>before</em> creating accounts saves significant time because every tool in an ecosystem is designed to connect to the others.</p>
+</blockquote>
+<p>An <strong>ecosystem</strong> is a family of tools from one provider that work together natively:</p>
+<table>
+<thead>
+<tr>
+<th>Ecosystem</th>
+<th>AI Brain</th>
+<th>IDE</th>
+<th>Cloud Host</th>
+<th>Database</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Google (used here)</strong></td>
+<td>Gemini</td>
+<td>Antigravity</td>
+<td>Cloud Run</td>
+<td>Neon / Cloud SQL</td>
+</tr>
+<tr>
+<td><strong>Anthropic</strong></td>
+<td>Claude</td>
+<td>Cursor / VS Code</td>
+<td>Any</td>
+<td>Any</td>
+</tr>
+<tr>
+<td><strong>OpenAI</strong></td>
+<td>ChatGPT</td>
+<td>Cursor / VS Code</td>
+<td>Any</td>
+<td>Any</td>
+</tr>
+<tr>
+<td><strong>Local / Open Source</strong></td>
+<td>Ollama</td>
+<td>VS Code</td>
+<td>Self-hosted</td>
+<td>Any</td>
+</tr>
+</tbody>
+</table>
+<p><strong>This guide uses the Google ecosystem</strong> — Gemini AI, Antigravity IDE, Google Cloud Run for hosting, and Neon for the database.</p>
+<blockquote>
+<p><strong>Recommendation for beginners:</strong> Pick one ecosystem and learn it fully before mixing. Each tool you add from a different provider introduces a new authentication layer, a new billing account, and a new set of docs.</p>
+</blockquote>
+<hr/>
+<h2 id="3-install-required-tools">3. Install Required Tools</h2>
+<p>These are installed <strong>once on your computer</strong>, not once per project. Skip any you already have.</p>
+<h3 id="a-python-312">A. Python 3.12+</h3>
+<ol>
+<li>Go to https://www.python.org/downloads/ and download the latest Python 3.12 installer.</li>
+<li>Run the installer. <strong>Check the box that says "Add Python to PATH"</strong> before clicking Install.</li>
+<li>Verify it worked — open a terminal and run:
+   <code>bash
+   python --version</code>
+   You should see <code>Python 3.12.x</code> or higher.</li>
+</ol>
+<h3 id="b-google-cloud-sdk-gcloud-cli">B. Google Cloud SDK (gcloud CLI)</h3>
+<p>This is the command-line tool used to deploy to Cloud Run, manage secrets, and configure GCP.</p>
+<p><strong>Windows:</strong>
+1. Go to https://cloud.google.com/sdk/docs/install and download the <strong>Windows installer</strong> (.exe).
+2. Run the installer — it will also install Python if you don't have it.
+3. At the end of installation, leave the box checked that says <strong>"Run gcloud init"</strong> and click Finish. A terminal will open automatically.</p>
+<p><strong>Mac:</strong></p>
+<pre><code class="language-bash">brew install google-cloud-sdk
+</code></pre>
+<p>Or download the macOS package from the same URL above.</p>
+<p><strong>After installation (all platforms), run:</strong></p>
+<pre><code class="language-bash">gcloud init
+</code></pre>
+<p>This walks you through:
+- Logging in to your Google account in a browser
+- Selecting a default project (you can change this later)
+- Selecting a default region</p>
+<p>Verify it worked:</p>
+<pre><code class="language-bash">gcloud --version
+</code></pre>
+<h3 id="c-antigravity-ide">C. Antigravity IDE</h3>
+<p>Antigravity is the AI-native development environment used to build this project. Think of it as the AI's "hands" — Gemini (or Claude) is the brain that reasons, but the IDE is what actually reads your files, writes code, and runs terminal commands.</p>
+<ol>
+<li>Go to https://antigravity.dev and download the installer for your OS</li>
+<li>Install and open it</li>
+<li>Sign in with your Google account (same one you'll use for Google Cloud)</li>
+<li>Open your project folder via <strong>File → Open Folder</strong></li>
+</ol>
+<blockquote>
+<p>If you prefer VS Code, Claude Code (https://claude.ai/code) works the same way as an extension. This project was built using Claude Code inside Antigravity.</p>
+</blockquote>
+<h3 id="d-docker-optional-for-local-container-testing-only">D. Docker (Optional — for local container testing only)</h3>
+<p>Only needed if you want to test the production container on your own machine before deploying. You can skip this and deploy directly to Cloud Run without it.</p>
+<p>If you do want it: https://www.docker.com/products/docker-desktop</p>
+<hr/>
+<h2 id="4-account-creation-step-by-step">4. Account Creation Step-by-Step</h2>
+<p>To host this project in production with zero constant costs, you need three things set up: a Google identity, a Google Cloud workspace, and a free database.</p>
+<blockquote>
+<p><strong>Important distinction — two different "Google" accounts:</strong>
+- <strong>Google Account</strong> (gmail.com) — your identity. Used to log in to everything.
+- <strong>Google Cloud Account</strong> — a separate workspace where your applications actually run. Requires its own sign-up and billing setup even if you already have Gmail.</p>
+<p>You need both. They are linked but not the same thing.</p>
+</blockquote>
+<h3 id="a-google-account-identity">A. Google Account (Identity)</h3>
+<p>If you have Gmail, you already have this. If not:
+1. Go to https://accounts.google.com and click <strong>Create account</strong>
+2. This account becomes your login for Google Cloud, Gemini API, Antigravity, and everything else in the ecosystem</p>
+<h3 id="b-google-cloud-platform-gcp-billing">B. Google Cloud Platform (GCP) + Billing</h3>
+<ol>
+<li>Go to <a href="https://console.cloud.google.com">Google Cloud Console</a> and sign in with your Google account</li>
+<li>Click <strong>Get Started for Free</strong> or <strong>Try for Free</strong></li>
+<li>Set up a <strong>Billing Account</strong> — enter your credit card<blockquote>
+<p>[!NOTE]
+Google requires a credit card to prevent abuse. New users receive ~$300 in free credits before any charges apply. The setup in this guide stays within the free tier after those credits.</p>
+</blockquote>
+</li>
+<li>Click the project dropdown in the top-left and select <strong>New Project</strong></li>
+<li>Name your project (e.g., <code>nutritrack-app</code>)</li>
+<li>Copy and save your <strong>Project ID</strong> (e.g. <code>nutritrack-app-429317</code>) and <strong>Project Number</strong> from the project dashboard</li>
+</ol>
+<h3 id="c-enable-the-gemini-api">C. Enable the Gemini API</h3>
+<p>This turns Gemini from a chatbot you use in a browser into a tool your application can call programmatically.
+1. Go to https://ai.google.dev and click <strong>Get API Key</strong>
+2. Select your Google Cloud project
+3. Click <strong>Create API Key</strong>
+4. Save the key — you'll use it in your <code>.env</code> file</p>
+<blockquote>
+<p>Do not paste this key into frontend code. It must stay on the backend only.</p>
+</blockquote>
+<h3 id="d-neon-serverless-postgresql">D. Neon Serverless PostgreSQL</h3>
+<ol>
+<li>Go to <a href="https://neon.tech">Neon</a> and sign up (you can use Google or GitHub OAuth, no credit card required).</li>
+<li>Create a new project named <code>nutritrack</code>.</li>
+<li>Pick a hosting region geographically close to your Cloud Run deployment region (e.g., if you plan to deploy Cloud Run to <code>us-central1</code> (Iowa), pick AWS US East or US West to minimize network latency).</li>
+<li>Go to the project dashboard, select <strong>Connection Details</strong>, and copy the connection string. It will look like:
+   <code>postgresql://neondb_owner:abc123xyz@ep-xxxx.us-east-2.aws.neon.tech/neondb?sslmode=require</code></li>
+<li>Save this URL. You will modify it slightly in later steps.</li>
+</ol>
+<hr/>
+<h2 id="5-connect-verify-everything">5. Connect &amp; Verify Everything</h2>
+<blockquote>
+<p><strong>Why this step matters:</strong> Each service you set up requires authentication before the next one can use it. If any link in the chain is missing, you get silent failures — the app loads but nothing works, with no obvious error message. Verify each connection before moving on.</p>
+</blockquote>
+<h3 id="what-is-mcp">What is MCP?</h3>
+<p><strong>MCP (Model Context Protocol)</strong> is what transforms an AI chatbot into an AI agent.</p>
+<table>
+<thead>
+<tr>
+<th>Without MCP</th>
+<th>With MCP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AI can answer questions</td>
+<td>AI can read and write your files</td>
+</tr>
+<tr>
+<td>AI can suggest code</td>
+<td>AI can execute terminal commands</td>
+</tr>
+<tr>
+<td>AI can explain concepts</td>
+<td>AI can deploy to Cloud Run</td>
+</tr>
+<tr>
+<td>AI can write a deploy command</td>
+<td>AI can <em>run</em> the deploy command</td>
+</tr>
+</tbody>
+</table>
+<p>MCP is the bridge between the AI's intelligence and the tools on your computer and in the cloud. Without it, the AI is a very smart advisor. With it, the AI is a hands-on developer.</p>
+<h3 id="connect-antigravity-to-google-services">Connect Antigravity to Google Services</h3>
+<ol>
+<li>Open Antigravity IDE</li>
+<li>Go to <strong>Settings → MCP Servers</strong> (or the MCP panel in the sidebar)</li>
+<li>Add the Google Cloud MCP server — Antigravity may prompt you to do this automatically when you first open a project with Cloud Run integration</li>
+<li>Authenticate: when prompted, log in with the same Google account used for Google Cloud</li>
+<li>Run in the terminal inside Antigravity:
+   <code>bash
+   gcloud auth application-default login</code>
+   This creates a local credential file that lets code running on your machine call Google APIs (Gemini, Cloud Run, etc.) without needing an API key in every request.</li>
+</ol>
+<h3 id="verification-checkpoint">Verification Checkpoint</h3>
+<p>Before writing any code, confirm each of these works. Missing one causes silent failures later.</p>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>How to verify</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>✅ Google account active</td>
+<td>You can log in to console.cloud.google.com</td>
+</tr>
+<tr>
+<td>✅ Billing enabled</td>
+<td>Console shows a project with billing linked</td>
+</tr>
+<tr>
+<td>✅ Gemini API enabled</td>
+<td>You have an API key from ai.google.dev</td>
+</tr>
+<tr>
+<td>✅ gcloud CLI authenticated</td>
+<td>Run <code>gcloud auth list</code> — your email appears</td>
+</tr>
+<tr>
+<td>✅ Antigravity signed in</td>
+<td>Your Google account shows in the IDE top bar</td>
+</tr>
+<tr>
+<td>✅ MCP connected</td>
+<td>Antigravity can list your GCP projects</td>
+</tr>
+<tr>
+<td>✅ App default credentials</td>
+<td>Run <code>gcloud auth application-default print-access-token</code> — returns a token</td>
+</tr>
+</tbody>
+</table>
+<p>If any check fails, fix it before proceeding. Every step after this assumes the full chain is working.</p>
+<h3 id="the-authentication-chain">The Authentication Chain</h3>
+<p>Understanding this chain explains why "it works on my machine but not in production" happens so often:</p>
+<pre><code>Your Google Account
+      ↓ (identity)
+Google Cloud Project
+      ↓ (workspace)
+APIs Enabled (Cloud Run, Gemini, Secret Manager)
+      ↓ (services available)
+Service Account (Cloud Run's own identity)
+      ↓ (permissions granted)
+Secrets &amp; Resources (JWT key, database)
+</code></pre>
+<div class="page-meta-bottom">
+<span><strong>Created:</strong> 2026-07-01</span>
+<span><strong>Last edited:</strong> 2026-07-01</span>
+<span><strong>Difficulty:</strong> Not specified</span>
+<span><strong>Estimated effort:</strong> Not specified</span>
+<span><strong>Version:</strong> Not specified</span>
+</div>
+</section>
+</main>
+<footer style="text-align:center; font-size:0.9em; padding:1em 0; border-top:1px solid #ccc;">
+<p>
+    © <span id="year"></span> The Scholar’s Tome.
+    Content on this site is licensed under
+    <a href="https://creativecommons.org/licenses/by-nc/4.0/" rel="noopener noreferrer" target="_blank">
+      Creative Commons Attribution-NonCommercial 4.0 International
+    </a>.
+  </p>
+</footer>
+<script>
+document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
