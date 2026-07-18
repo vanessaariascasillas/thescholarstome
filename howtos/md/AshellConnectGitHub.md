@@ -1,4 +1,5 @@
 ---
+type: Guide
 author: vanessaariascasillas
 author_url: https://github.com/vanessaariascasillas
 tags: A-shell, GitHub, How-To, Instructions

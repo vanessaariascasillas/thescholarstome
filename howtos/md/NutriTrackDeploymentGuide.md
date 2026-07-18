@@ -1,3 +1,7 @@
+---
+type: Guide
+---
+
 # NutriTrack — Complete Deployment & Architecture Guide
 
 An educational guide detailing the local setup, cloud migration, database architecture transitions, and production deployment of the NutriTrack health journal. Use this document to teach others how to deploy a full-stack, AI-powered web application on Google Cloud.

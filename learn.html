@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Learn | The Scholar's Tome</title>
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<header>
+    <h1>The Scholar’s Tome</h1>
+    <nav>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="data.html">Data</a></li>
+            <li><a href="learn.html" class="active">Learn</a></li>
+            <li><a href="guides.html">Guides</a></li>
+            <li><a href="journeys.html">Journeys</a></li>
+            <li><a href="reference.html">Reference</a></li>
+            <li><a href="archive.html">Archive</a></li>
+            <li><a href="about.html">About</a></li>
+        </ul>
+    </nav>
+</header>
+
+<main>
+    <section>
+        <h2>Learn</h2>
+        <p>Concepts, theory, and background — the "what is this, and why does it matter" pieces that sit underneath the guides and journeys.</p>
+        <p><em>No entries yet. Check back as concept explainers are added.</em></p>
+    </section>
+</main>
+<footer style="text-align:center; font-size:0.9em; padding:1em 0; border-top:1px solid #ccc;">
+  <p>
+    &copy; <span id="year"></span> The Scholar’s Tome.
+    Content on this site is licensed under
+    <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener noreferrer">
+      Creative Commons Attribution-NonCommercial 4.0 International
+    </a>.
+  </p>
+</footer>
+
+<script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+</body>
+</html>

@@ -1,3 +1,7 @@
+---
+type: Journey
+---
+
 # NutriTrack — Learning Log
 ### A Researcher's Notebook on Building & Deploying a Full-Stack AI Web App
 

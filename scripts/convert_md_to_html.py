@@ -65,6 +65,28 @@ def estimate_reading_time(text: str) -> str:
     return f"{minutes} min read"
 
 
+# Content type -> (hub page, nav label). "Guide" is the default when a
+# markdown file's frontmatter doesn't specify a type.
+TYPE_HUBS = {
+    "Learn": ("learn.html", "Learn"),
+    "Guide": ("guides.html", "Guides"),
+    "Journey": ("journeys.html", "Journeys"),
+    "Reference": ("reference.html", "Reference"),
+    "Archive": ("archive.html", "Archive"),
+}
+
+
+def build_nav(active_hub: str) -> str:
+    items = [("index.html", "Home"), ("data.html", "Data")] + [
+        (hub, label) for hub, label in TYPE_HUBS.values()
+    ] + [("about.html", "About")]
+    lines = []
+    for href, label in items:
+        active = ' class="active"' if href == active_hub else ""
+        lines.append(f'            <li><a href="../{href}"{active}>{label}</a></li>')
+    return "\n".join(lines)
+
+
 # ----------------------------
 # Parse arguments
 # ----------------------------
@@ -120,9 +142,11 @@ for md_file in md_files:
     difficulty = frontmatter.get("difficulty", "Not specified")
     estimated_effort = frontmatter.get("estimated_effort", frontmatter.get("estimated effort", "Not specified"))
     version = frontmatter.get("version", "Not specified")
+    content_type = frontmatter.get("type", "Guide").strip().title()
+    hub_page, _ = TYPE_HUBS.get(content_type, TYPE_HUBS["Guide"])
     meta_block_top = f"""
 <div class=\"page-meta-top\">
-  <span><strong>Type:</strong> How-To</span>
+  <span><strong>Type:</strong> {content_type}</span>
   <span><strong>Author:</strong> {author_html}</span>
   <span><strong>Reading time:</strong> {reading_time}</span>
   <span><strong>Tags:</strong> {tags}</span>
@@ -159,10 +183,7 @@ for md_file in md_files:
     <h1>{SITE_TITLE}</h1>
     <nav>
         <ul>
-            <li><a href=\"../index.html\">Home</a></li>
-            <li><a href=\"../data.html\">Data</a></li>
-            <li><a href=\"../howtos.html\" class=\"active\">How-Tos</a></li>
-            <li><a href=\"../about.html\">About</a></li>
+{build_nav(hub_page)}
         </ul>
     </nav>
 </header>
